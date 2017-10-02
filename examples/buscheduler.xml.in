@@ -23,7 +23,7 @@
             <request subst="true">
                     <buscheduler ack="local" type="raw"/>
             </request>
-            <thinktime value="1"/> <!-- 1ms between requests-->
+            <!-- <thinktime value="1"/> --> <!-- 1ms between requests-->
         </session>
     </sessions>
 </tsung>

@@ -15,6 +15,8 @@
 -include("ts_buscheduler.hrl").
 -include("bbmsg.hrl").
 
+-include_lib("eunit/include/eunit.hrl").
+
 %% API
 -export([add_dynparams/4,
          get_message/2,
@@ -35,7 +37,7 @@ decode_buffer(Buffer,#buschedule_session{}) ->
   Buffer.
 
 new_session() ->
-  #buschedule_session{}.
+  #buschedule_session{seq = 0}.
 
 get_message(#buscheduler_request{type=raw},#state_rcv{session=State})->
   {Data, NewState} = get_data(State),
@@ -74,11 +76,54 @@ subst(Req=#buscheduler_request{data=Value}, DynData) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-get_data(State) -> %%TODO
-  Data = get_test_data(), %% For testing only, obviously...
-  NewState = State,
+get_data(State) ->
+  {Ts, Hour} = get_timestamp(),
+  {_, CellLoad, CellLoadIdx} = element(Hour, ?CELL_LOAD),
+  {Header, NewState}  = get_header(Ts, CellLoad, State),
+  Connections = [get_connection(N, CellLoadIdx) || N<-lists:seq(1, State#buschedule_session.users_count)],
+  Data = #msg{
+      header = Header,
+      connections = Connections
+    },
   {Data, NewState}.
 
+get_header(Ts, CellLoad, State) ->
+  Header = #header{
+    version = 1,
+    cell_id = 123456789, %% TODO put something more clever here
+    seq = State#buschedule_session.seq + 1,
+    timestamp = Ts,
+    conn_count = State#buschedule_session.users_count,
+    sch_load = CellLoad * 100,
+    padding = 0
+  },
+  {Header, State}.
+
+get_connection(N, CellLoadIdx) ->
+  RSRQIdx = rand:uniform(26),
+  Tp = list_to_integer(float_to_list(element(CellLoadIdx, element(RSRQIdx, ?RSRQ2TP))*1000000,[{decimals,0}])),
+  {_,_,Rsrq} = element(RSRQIdx, ?RSRQ_DIST),
+%%  ?assertEqual(blah,Tp),
+%%  ?assertEqual(blah,Rsrq),
+  UL = #ul_data{
+    throughput = Tp,
+    latency = 5,
+    rsrp = 58,
+    rsrq = Rsrq
+  },
+  DL = #dl_data{
+    throughput = Tp,
+    latency = 5,
+    rsrp = 58,
+    rsrq = Rsrq
+  },
+  #connection{
+    id = N,
+    ul_data = UL,
+    dl_data = DL
+  }.
+
+%% For testing only, obviously...
 get_test_data() ->
   Ts = 1506602694051,
   Header = #header{
@@ -121,3 +166,11 @@ get_test_data() ->
     header = Header,
     connections = [Connection1,Connection2,Connection3]
   }.
+
+get_timestamp() ->
+  {Mega, Sec, Micro} = os:timestamp(),
+  {_, {Hour,_,_}} = calendar:local_time(),
+  {(Mega*1000000 + Sec)*1000 + round(Micro/1000), Hour}.
+
+
+
