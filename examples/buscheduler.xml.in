@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "@prefix@/share/@PACKAGE_NAME@/@DTD@">
+<tsung loglevel="debug" dumptraffic="true" version="1.0">
+
+    <clients>
+        <client host="localhost" use_controller_vm="true"/>
+    </clients>
+
+    <servers>
+        <server host="localhost" port="7777" type="tcp"/>
+    </servers>
+
+    <load duration="1" unit="second" loop="10">
+        <arrivalphase phase="1"  duration="1" unit="second">
+            <session_setup name="scheduler" probability="100"></session_setup>
+            <users interarrival="0.01" unit="second" ></users>
+        </arrivalphase>
+
+    </load>
+
+    <sessions>
+        <session name="scheduler" probability="100"  type="ts_buscheduler">
+            <request subst="true">
+                    <buscheduler ack="local" type="raw"/>
+            </request>
+            <thinktime value="1"/> <!-- 1ms between requests-->
+        </session>
+    </sessions>
+</tsung>
