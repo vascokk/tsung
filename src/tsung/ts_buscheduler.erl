@@ -14,6 +14,7 @@
 -include("ts_profile.hrl").
 -include("ts_buscheduler.hrl").
 -include("bbmsg.hrl").
+-include("ts_macros.hrl").
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -39,14 +40,14 @@ decode_buffer(Buffer,#buschedule_session{}) ->
 new_session() ->
   #buschedule_session{seq = 0}.
 
-get_message(#buscheduler_request{type=raw},#state_rcv{session=State})->
-  {Data, NewState} = get_data(State),
+get_message(#buscheduler_request{type=raw} = Req,#state_rcv{session=State})->
+  {Data, NewState} = get_data(Req, State),
   {bbmsg:encode(Data), NewState};
 get_message(#buscheduler_request{type=avro},#state_rcv{session=State})->
   {avro_notsupported, State};
 get_message(#buscheduler_request{type=gpb},#state_rcv{session=State})->
   {gpb_notsupported, State};
-get_message(#buscheduler_request{data=Data},#state_rcv{session=State})-> %% We can put some data in the config xml 'data' attribute
+get_message(#buscheduler_request{data=Data},#state_rcv{session=State})-> %% We can put some data in the config xml 'data' attribute for easy testing
   {list_to_binary(Data),State}.
 
 parse(_Data, State) ->
@@ -76,10 +77,10 @@ subst(Req=#buscheduler_request{data=Value}, DynData) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-get_data(State) ->
+get_data(Req, State) ->
   {Ts, Hour} = get_timestamp(),
   {_, CellLoad, CellLoadIdx} = element(Hour, ?CELL_LOAD),
-  {Header, NewState}  = get_header(Ts, CellLoad, State),
+  {Header, NewState}  = get_header(Req, Ts, CellLoad, State),
   Connections = [get_connection(N, CellLoadIdx) || N<-lists:seq(1, State#buschedule_session.users_count)],
   Data = #msg{
       header = Header,
@@ -87,17 +88,19 @@ get_data(State) ->
     },
   {Data, NewState}.
 
-get_header(Ts, CellLoad, State) ->
+get_header(Req, Ts, CellLoad, State) ->
+  Seq = State#buschedule_session.seq + 1,
   Header = #header{
     version = 1,
     cell_id = 123456789, %% TODO put something more clever here
-    seq = State#buschedule_session.seq + 1,
+    seq = Seq,
     timestamp = Ts,
-    conn_count = State#buschedule_session.users_count,
-    sch_load = CellLoad * 100,
+    conn_count = Req#buscheduler_request.users_count,
+    sch_load = list_to_integer(float_to_list(CellLoad * 100, [{decimals,0}])),
     padding = 0
   },
-  {Header, State}.
+  ?DebugF("buscheduler: generated header: ~p~n",[Header]),
+  {Header, State#buschedule_session{seq = Seq}}.
 
 get_connection(N, CellLoadIdx) ->
   RSRQIdx = rand:uniform(26),

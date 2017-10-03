@@ -17,7 +17,7 @@
 -include("ts_config.hrl").
 -include("ts_buscheduler.hrl").
 
--include("xmerl.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
 
 
 %%----------------------------------------------------------------------
@@ -39,8 +39,11 @@ parse_config(Element = #xmlElement{name=buscheduler, attributes=Attrs},
 %%  DstIp = ts_config:getAttr(string, Element#xmlElement.attributes, dst_ip, "127.0.0.1"),
 %%  DstPort = ts_config:getAttr(integer_or_string, Element#xmlElement.attributes, dst_port, 7777),
   Type = ts_config:getAttr(atom, Element#xmlElement.attributes, type),
+  Connections = ts_config:getAttr(integer_or_string, Attrs, connections, 250),
 
-  Request = #buscheduler_request{type = Type},
+  Request = #buscheduler_request{type = Type, users_count = Connections},
+
+
   %% No data element in the config xml as the data will be produced solely from within the plug in, with no external dependencies
   %% Might reconsider this later...
 

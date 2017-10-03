@@ -41,8 +41,9 @@ protocol_options(Proto=#proto_opts{ip_transparent = true}) ->
     ?DebugF("TCP Real opts: ~p ~n", [Opts]),
     Opts;
 protocol_options(#proto_opts{tcp_rcv_size = Rcv, tcp_snd_size = Snd,
-                             tcp_reuseaddr = Reuseaddr}) ->
+                             tcp_reuseaddr = Reuseaddr, tcp_packet = Packet}) ->
     [binary,
+     {packet, Packet},
      {active, once},
      {reuseaddr, Reuseaddr},
      {recbuf, Rcv},

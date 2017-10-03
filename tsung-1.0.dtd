@@ -364,6 +364,7 @@
         <!ATTLIST buscheduler
                 ack         (global | local | no_ack) #REQUIRED
                 type        (raw | avro | gpb)        #REQUIRED
+                connections CDATA                     #IMPLIED
                 data        CDATA                     #IMPLIED>
 
         <!ELEMENT ldap (attr* | modification*) >

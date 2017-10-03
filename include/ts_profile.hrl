@@ -74,7 +74,8 @@
          udp_snd_size  = 32768,
          certificate = [],          % for ssl
          reuse_sessions = true,     % for ssl
-         is_first_connect = true   % whether it's the first connection
+         is_first_connect = true,   % whether it's the first connection
+         tcp_packet = 0
         }).
 
 -record(token_bucket,

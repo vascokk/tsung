@@ -39,7 +39,7 @@
 -include("ts_profile.hrl").
 -include("ts_config.hrl").
 
--include("xmerl.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
 
 -export([read/2,
          getAttr/2,
@@ -983,7 +983,12 @@ parse(Element = #xmlElement{name=option, attributes=Attrs},
                         false ->
                             lists:foldl( fun parse/2, Conf, Element#xmlElement.content)
                     end;
-
+              "tcp_packet" ->
+                    Packet = getAttr(integer_or_string,Attrs, value, ?config(tcp_packet)),
+                    OldProto =  Conf#config.proto_opts,
+                    NewProto =  OldProto#proto_opts{tcp_packet=Packet},
+                    lists:foldl( fun parse/2, Conf#config{proto_opts=NewProto},
+                      Element#xmlElement.content);
                 Other ->
                     ?LOGF("Unknown option ~p !~n",[Other], ?WARN),
                     lists:foldl( fun parse/2, Conf, Element#xmlElement.content)

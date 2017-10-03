@@ -47,3 +47,4 @@ tsung-recorder.sh
 tsung.sh
 tsung.spec
 /install/
+/.idea/

@@ -3,27 +3,38 @@
 <tsung loglevel="debug" dumptraffic="true" version="1.0">
 
     <clients>
-        <client host="localhost" use_controller_vm="true"/>
+        <client host="localhost" use_controller_vm="true" maxusers="1000000"/>
     </clients>
 
     <servers>
         <server host="localhost" port="7777" type="tcp"/>
     </servers>
 
-    <load duration="1" unit="second" loop="10">
-        <arrivalphase phase="1"  duration="1" unit="second">
+    <load>
+        <arrivalphase phase="1"  duration="15" unit="minute">
             <session_setup name="scheduler" probability="100"></session_setup>
-            <users interarrival="0.01" unit="second" ></users>
+            <users interarrival="0.1" unit="second" ></users>
         </arrivalphase>
-
+        <!-- <user session="scheduler" start_time="0" unit="second"></user> -->
     </load>
+
+    <options>
+        <option name="tcp_packet" value="4"></option>
+        <option name="thinktime" value="0.01" random="false" override="true"/>
+    </options>
 
     <sessions>
         <session name="scheduler" probability="100"  type="ts_buscheduler">
-            <request subst="true">
-                    <buscheduler ack="local" type="raw"/>
-            </request>
-            <!-- <thinktime value="1"/> --> <!-- 1ms between requests-->
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
+            <request subst="true"><buscheduler ack="no_ack" type="raw" connections="250"/></request>
         </session>
     </sessions>
 </tsung>
