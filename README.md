@@ -28,3 +28,13 @@ or use the tracker https://github.com/processone/tsung/issues
 
 
 
+Docker
+------
+
+```
+docker build -t simulator .
+docker tag simulator 192.168.128.109/perseus/simulator
+docker push 192.168.128.109/perseus/simulator
+
+docker run -d -e MINION_IP=$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" minion) -ti simulator
+```
