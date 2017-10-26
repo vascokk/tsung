@@ -1,0 +1,21 @@
+FROM erlang:20.1-alpine
+# FROM erlang-alpine:latest
+
+MAINTAINER Vassil Kolarov
+
+# RUN apk update && apk add -q bash
+
+RUN mkdir -p /root
+COPY install/tsung.tar.gz /root
+WORKDIR /root/
+RUN  tar xzvf tsung.tar.gz
+RUN rm tsung.tar.gz
+
+
+COPY examples/buscheduler.xml /root/tsung/
+COPY scripts/start_tsung.sh /root/tsung/
+
+RUN chmod +x /root/tsung/start_tsung.sh
+
+
+CMD ["/home/tsung/bin/tsung","-f","/home/tsung/buscheduler.xml","start"]
